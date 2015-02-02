@@ -5,7 +5,7 @@ Gameserver Service Library for LibGDX
 
 About
 -----
-Provides a simple user interface for fetching and displaying a server list within a LibGDX game. It makes use of the Scene2d.ui to make it more responsive to various screen sizes. The server list itself can easily be inserted into your own existing stages.
+Provides a simple user interface for fetching and displaying a server list within a LibGDX game. It makes use of the Scene2d.ui to make it more responsive on various screen sizes. The server list itself can easily be inserted into your own existing UI stages.
 
 Dependencies
 ----
