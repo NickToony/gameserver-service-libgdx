@@ -8,12 +8,14 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Cell;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import com.badlogic.gdx.scenes.scene2d.utils.Align;
 import com.nicktoony.gameserver.service.client.Client;
+import com.nicktoony.gameserver.service.client.models.Server;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +23,7 @@ import java.util.List;
 /**
  * Created by Nick on 01/02/2015.
  */
-public class ServerList extends Table {
+public class ServerList extends Table implements Client.ClientListener {
     private final Skin skin;
     private final Client client;
 
@@ -40,13 +42,15 @@ public class ServerList extends Table {
         columns.add("Name");
         columns.add("Players");
 
-        setup();
-
         // For debug purposes
         shapeRenderer = new ShapeRenderer();
 
-        client = new Client();
+        // start the initial refresh
+        client = new Client().setListener(this);
         client.refresh();
+
+        // finally, setup
+        setup();
     }
 
     private void setup() {
@@ -66,9 +70,15 @@ public class ServerList extends Table {
 
         Table table = new Table();
         table.setDebug(getDebug());
-        add(table).fillX().colspan(getColumns());
 
-        createRow(table, columns.toArray(new String[columns.size()]), false);
+        ScrollPane scrollPane = new ScrollPane(table);
+        add(scrollPane).fillX().colspan(getColumns());
+
+        for (Server server : client.getServers()) {
+            createRow(table, new String[] {
+                    server.getName(), server.getCurrentPlayers() + "/" + server.getMaxPlayers()
+            }, false);
+        }
     }
 
     private void createRow(Table table, String[] values, boolean header) {
@@ -86,5 +96,15 @@ public class ServerList extends Table {
 
     public void dispose() {
         shapeRenderer.dispose();
+    }
+
+    @Override
+    public void onRefreshed() {
+        setup();
+    }
+
+    @Override
+    public void onFail() {
+
     }
 }
