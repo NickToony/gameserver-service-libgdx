@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.Button;
 import com.badlogic.gdx.scenes.scene2d.ui.Cell;
+import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -135,19 +136,27 @@ public class ServerList extends Table implements Client.ClientListener {
             }
         });
 
-
         textInputName = new TextField("", skin);
         labelName = new Label("Server Name: ", skin);
+
+        CheckBox checkEmpty = new CheckBox(" Empty Servers", skin);
+        checkEmpty.setChecked(true);
+        CheckBox checkFull = new CheckBox(" Full  Servers", skin);
+        checkFull.setChecked(true);
 
         // States
         setRefreshing(refreshing);
 
         // Add to layouts
-        table.row();
-        table.align(Align.left);
+        table.row().left();
         table.add(labelName);
-        table.add(textInputName).fillX().expandX().align(Align.left);
+        table.add(textInputName).fillX().expandX();
         table.add(buttonRefresh).padLeft(50);
+
+        table.row().left();
+        table.add(checkEmpty);
+        table.row().left();
+        table.add(checkFull);
     }
 
     /**
