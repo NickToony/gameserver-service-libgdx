@@ -1,13 +1,16 @@
 package com.nicktoony.gameserver.service.libgdx;
 
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.Button;
+import com.badlogic.gdx.scenes.scene2d.ui.Cell;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.Align;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.nicktoony.gameserver.service.client.Client;
@@ -22,13 +25,21 @@ import java.util.List;
 public class ServerList extends Table implements Client.ClientListener {
     private final Skin skin;
     private final Client client;
-    private boolean refreshing;
 
+    // Columns to display
     private List<String> columns = new ArrayList<>();
 
+    // Stored values
     private ShapeRenderer shapeRenderer;
+    private Table serversTable;
+    private boolean updated;
+    private boolean refreshing;
+
+    // UI actors
     private Button buttonRefresh;
     private Label buttonRefreshText;
+    private TextField textInputName;
+    private Label labelName;
 
     /**
      * Create a new ServerList, which is a libGDX table. It will handle the layout,
@@ -68,6 +79,10 @@ public class ServerList extends Table implements Client.ClientListener {
         setupButtons();
     }
 
+    private void update() {
+        updated = true;
+    }
+
     /**
      * The top headers are a seperate layout to the actual serverlist table,
      * so that they don't scroll away
@@ -80,16 +95,18 @@ public class ServerList extends Table implements Client.ClientListener {
      * uses the client's servers to populate the rows
      */
     private void setupRows() {
-        row();
+        if (serversTable == null) {
+            row();
 
-        Table table = new Table();
-        table.setDebug(getDebug());
+            serversTable = new Table();
+            serversTable.setDebug(getDebug());
 
-        ScrollPane scrollPane = new ScrollPane(table);
-        add(scrollPane).expand().fill().colspan(getColumns());
+            ScrollPane scrollPane = new ScrollPane(serversTable);
+            add(scrollPane).expandY().fill().colspan(getColumns());
+        }
 
         for (Server server : client.getServers()) {
-            createRow(table, new String[] {
+            createRow(serversTable, new String[] {
                     server.getName(), server.getCurrentPlayers() + "/" + server.getMaxPlayers()
             }, false);
         }
@@ -104,7 +121,7 @@ public class ServerList extends Table implements Client.ClientListener {
         Table table = new Table();
         table.setDebug(getDebug());
 
-        add(table).fillX().colspan(getColumns());
+        add(table).fillX().colspan(getColumns()).pad(5);
 
         buttonRefresh = new Button(skin);
         buttonRefreshText = new Label("Refresh", skin);
@@ -118,9 +135,19 @@ public class ServerList extends Table implements Client.ClientListener {
             }
         });
 
+
+        textInputName = new TextField("", skin);
+        labelName = new Label("Server Name: ", skin);
+
+        // States
         setRefreshing(refreshing);
 
-        table.add(buttonRefresh);
+        // Add to layouts
+        table.row();
+        table.align(Align.left);
+        table.add(labelName);
+        table.add(textInputName).fillX().expandX().align(Align.left);
+        table.add(buttonRefresh).padLeft(50);
     }
 
     /**
@@ -152,7 +179,7 @@ public class ServerList extends Table implements Client.ClientListener {
     @Override
     public void onRefreshed() {
         setRefreshing(false);
-        setup();
+        update();
     }
 
     @Override
@@ -183,5 +210,16 @@ public class ServerList extends Table implements Client.ClientListener {
     public void refresh() {
         client.refresh();
         setRefreshing(true);
+    }
+
+    @Override
+    public void draw(Batch batch, float parentAlpha) {
+        super.draw(batch, parentAlpha);
+
+        if (updated) {
+            serversTable.clearChildren();
+            setupRows();
+            updated = false;
+        }
     }
 }
