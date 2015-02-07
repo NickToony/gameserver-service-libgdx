@@ -1,7 +1,9 @@
 apply plugin: 'java'
 
+version = '0.1'
+
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile "com.badlogicgames.gdx:gdx:$gdxVersion"
-    compile project(':gameserver-service-java')
+    compile "com.nicktoony:gameserver-service-java:0.1"
 }
