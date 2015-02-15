@@ -18,6 +18,7 @@ import com.nicktoony.gameserver.service.client.Client;
 import com.nicktoony.gameserver.service.client.models.Server;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -29,6 +30,7 @@ public class ServerList extends Table implements Client.ClientListener {
 
     // Columns to display
     private List<String> columns = new ArrayList<>();
+    private List<String> metaColumns = new ArrayList<>();
 
     // Stored values
     private ShapeRenderer shapeRenderer;
@@ -41,6 +43,7 @@ public class ServerList extends Table implements Client.ClientListener {
     private Label buttonRefreshText;
     private TextField textInputName;
     private Label labelName;
+    private Label[] headerLabels;
 
     /**
      * Create a new ServerList, which is a libGDX table. It will handle the layout,
@@ -66,13 +69,13 @@ public class ServerList extends Table implements Client.ClientListener {
         refresh();
 
         // finally, setup
-        setup();
+        //setup();
     }
 
     /**
      * Call this to recreate all views
      */
-    private void setup() {
+    public void setup() {
         clearChildren();
 
         setupColumnHeaders();
@@ -89,7 +92,7 @@ public class ServerList extends Table implements Client.ClientListener {
      * so that they don't scroll away
      */
     private void setupColumnHeaders() {
-        createRow(this, columns.toArray(new String[columns.size()]), true);
+        headerLabels = createRow(this, columns.toArray(new String[columns.size()]), true);
     }
 
     /**
@@ -101,15 +104,29 @@ public class ServerList extends Table implements Client.ClientListener {
 
             serversTable = new Table();
             serversTable.setDebug(getDebug());
+            serversTable.top();
 
             ScrollPane scrollPane = new ScrollPane(serversTable);
             add(scrollPane).expandY().fill().colspan(getColumns());
         }
 
         for (Server server : client.getServers()) {
-            createRow(serversTable, new String[] {
-                    server.getName(), server.getCurrentPlayers() + "/" + server.getMaxPlayers()
-            }, false);
+            // Collect together all the meta values and such
+            List<String> values = new ArrayList<String>();
+            values.add(server.getName());
+            values.add(server.getCurrentPlayers() + "/" + server.getMaxPlayers());
+            for (String key : metaColumns) {
+                if (server.getMeta().containsKey(key)) {
+                    values.add(server.getMeta().get(key));
+                } else {
+                    values.add("null");
+                }
+            }
+
+            // Convert the list to an array
+            String[] valuesArray = new String[values.size()];
+            // Create the row
+            Label[] rowLabels = createRow(serversTable, values.toArray(valuesArray),false);
         }
     }
 
@@ -165,17 +182,25 @@ public class ServerList extends Table implements Client.ClientListener {
      * @param values
      * @param header
      */
-    private void createRow(Table table, String[] values, boolean header) {
+    private Label[] createRow(Table table, String[] values, boolean header) {
         if (header) {
             table.row().padBottom(20);
         } else {
-            table.row();
+            table.row().expandX();
         }
 
-        for (String value : values) {
+        Label[] labels = new Label[values.length];
+        for (int i = 0; i < values.length; i ++) {
+            String value = values[i];
             Label label = new Label(value, skin);
-            table.add(label).expandX().align(Align.left);
+            if (header) {
+                table.add(label).expandX().align(Align.left);
+            } else {
+                table.add(label).align(Align.left).width(headerLabels[i].getWidth());
+            }
+            labels[i] = label;
         }
+        return labels;
     }
 
     /**
@@ -230,5 +255,10 @@ public class ServerList extends Table implements Client.ClientListener {
             setupRows();
             updated = false;
         }
+    }
+
+    public void addMetaColumn(String header, String column) {
+        columns.add(header);
+        metaColumns.add(column);
     }
 }
