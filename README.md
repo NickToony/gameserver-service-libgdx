@@ -1,7 +1,7 @@
 Gameserver Service Library for LibGDX
 ===================
 
-<img src="https://github.com/NickToony/gameserver-service-libgdx/blob/master/screenshots/screenshot%201.png"/ width="50%">
+<img src="https://github.com/NickToony/gameserver-service-libgdx/blob/master/screenshots/screenshot%201.png" width="50%" />
 
 About
 -----
